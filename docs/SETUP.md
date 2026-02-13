@@ -526,6 +526,127 @@ npx expo install --fix
 
 ---
 
+## 6. 運用モニタリング
+
+FeedOwnの無料枠使用状況を確認するためのスクリプトが用意されています。
+
+### 6.1 前提条件
+
+```bash
+# 依存関係インストール（初回のみ）
+pip install -r scripts/requirements.txt
+```
+
+`.env.shared` に以下の環境変数が設定されていること:
+
+```env
+# 必須（Supabase セットアップ時に設定済み）
+SUPABASE_URL=https://xxxxx.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+```
+
+### 6.2 ユーザー統計の確認
+
+登録ユーザー数、MAU、各ユーザーのフィード数・記事数を確認します。
+
+```bash
+python scripts/check_users.py
+```
+
+**表示内容:**
+- 総ユーザー数（auth.users ベース）
+- user_profileテーブルとの差分
+- テストアカウント / 実アカウントの内訳
+- 直近24時間 / 7日 / 30日の新規登録数
+- 全ユーザーのフィード数・記事数・最終ログイン日時
+
+**必要な環境変数:** `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
+
+### 6.3 Supabase 無料枠使用量の確認
+
+Supabaseの無料枠に対する現在の使用率と成長予測を表示します。
+
+```bash
+python scripts/check_usage.py
+```
+
+**表示内容:**
+- Authentication: MAU / 50,000 上限
+- Database: テーブルごとの行数と推定サイズ / 500MB 上限
+- 成長予測（10〜1000ユーザー時の推定DB使用量）
+- 総合判定（OK / WARNING / CRITICAL）
+
+**必要な環境変数:** `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
+
+**オプション:** `SUPABASE_ACCESS_TOKEN` を設定すると、推定値ではなく実際のDB使用量を取得できます。
+
+<details>
+<summary>SUPABASE_ACCESS_TOKEN の取得方法</summary>
+
+1. https://supabase.com/dashboard/account/tokens にアクセス
+2. 「Generate new token」をクリック
+3. トークン名を入力（例: `feedown-monitoring`）
+4. 生成されたトークンをコピー
+5. `.env.shared` に追加:
+   ```env
+   SUPABASE_ACCESS_TOKEN=sbp_xxxxxxxxxxxxxxxxxxxxxxxx
+   ```
+
+**注意:** トークンは生成時にのみ表示されます。紛失した場合は再生成してください。
+
+</details>
+
+### 6.4 Cloudflare 無料枠使用量の確認
+
+Cloudflareの無料枠に対する現在の使用率を表示します。
+
+```bash
+python scripts/check_cloudflare.py
+```
+
+**表示内容:**
+- Workers: アクティブなWorker一覧、日別リクエスト数 / 10万件上限
+- KV Storage: ネームスペース一覧、無料枠上限
+- Pages: プロジェクト一覧、今月のデプロイ数 / 500回上限
+- Pages Functions: 日別リクエスト数 / 10万件上限（直近7日のグラフ）
+- 総合判定（OK / WARNING / CRITICAL）
+
+**必要な環境変数:** `CLOUDFLARE_API_TOKEN`
+
+<details>
+<summary>CLOUDFLARE_API_TOKEN の取得方法</summary>
+
+1. https://dash.cloudflare.com/profile/api-tokens にアクセス
+2. 「Create Token」をクリック
+3. **「Read all resources」テンプレート** を選択（推奨・最も簡単）
+4. 「Continue to summary」→「Create Token」
+5. 生成されたトークンをコピー
+6. `.env.shared` に追加:
+   ```env
+   CLOUDFLARE_API_TOKEN=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+   ```
+
+**注意:** トークンは生成時にのみ表示されます。紛失した場合は再生成してください。
+
+カスタムトークンを作成する場合、以下の権限が必要です:
+- Account > Workers Scripts: Read
+- Account > Workers KV Storage: Read
+- Account > Cloudflare Pages: Read
+- Account > Account Analytics: Read
+
+</details>
+
+### 6.5 スクリプト一覧
+
+| スクリプト | 用途 | 必要な環境変数 |
+|-----------|------|---------------|
+| `check_users.py` | ユーザー統計 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` |
+| `check_usage.py` | Supabase無料枠チェック | 同上 + `SUPABASE_ACCESS_TOKEN`(任意) |
+| `check_cloudflare.py` | Cloudflare無料枠チェック | `CLOUDFLARE_API_TOKEN` |
+| `sync_recommended_feeds.py` | おすすめフィード管理 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` |
+
+---
+
 ## おすすめフィードの管理
 
 おすすめフィードはPythonスクリプトで管理します。

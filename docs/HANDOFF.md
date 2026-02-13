@@ -743,6 +743,36 @@ python scripts/sync_recommended_feeds.py --check
 
 ---
 
+## 運用モニタリング
+
+無料枠の使用状況を確認するPythonスクリプトが `scripts/` に用意されています。
+
+```bash
+# 依存関係インストール（初回のみ）
+pip install -r scripts/requirements.txt
+
+# ユーザー統計（登録数、MAU、アクティブ度）
+python scripts/check_users.py
+
+# Supabase 無料枠チェック（DB 500MB、Auth 50,000 MAU）
+python scripts/check_usage.py
+
+# Cloudflare 無料枠チェック（Workers 10万req/日、Pages Functions 10万/日）
+python scripts/check_cloudflare.py
+```
+
+必要な環境変数（`.env.shared`に設定）:
+
+| 変数 | 用途 | 取得先 |
+|------|------|--------|
+| `SUPABASE_SERVICE_ROLE_KEY` | check_users, check_usage | Supabase Dashboard > Settings > API |
+| `SUPABASE_ACCESS_TOKEN` | check_usage（実DB使用量） | https://supabase.com/dashboard/account/tokens |
+| `CLOUDFLARE_API_TOKEN` | check_cloudflare | https://dash.cloudflare.com/profile/api-tokens |
+
+詳細なセットアップ手順は `docs/SETUP.md` の「運用モニタリング」セクションを参照。
+
+---
+
 ## 既知の制限事項
 
 1. **Delete Account**: Supabase Auth recordが残る可能性あり（データは削除される）
