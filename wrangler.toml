@@ -5,3 +5,6 @@ compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "apps/web/dist"
 # Pages specific settings will be managed through Pages dashboard
 # This file is mainly for local development and CI/CD
+[vars]
+YARN_VERSION = "4.5.0"
+YARN_ENABLE_IMMUTABLE_INSTALLS = "false"
